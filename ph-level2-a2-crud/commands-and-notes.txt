@@ -1,24 +1,58 @@
 https://expressjs.com/
 initialize package.josn = npm init -y
+"Here remove "type":"comnonjs" from package.json file"
+
 install expressjs = npm install express --save
 install typescript with dependency = npm i -D typescript
 initialize typescript = npx tsc --init
+"Here comment out and comment some items from tsconfig.json"
+-- // File Layout 'comment out'
+    "rootDir": "./src",
+    "outDir": "./dist",
+-- // Other Outputs 'comment'
+    // "sourceMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
+-- // Recommend options 'comment'
+    // "jsx": "react-jsx",
+    // "verbatimModuleSyntax": true,
+
+
 install @types of express = npm i --save-dev @types/express
 
 https://nodejs.org/en/learn/typescript/run
 Running TypeScript code with tsx = npm i -D tsx
 Then set run command inside package.json file '"scripts"' = npx tsx example.ts
 "dev": "npx tsx watch ./src/server.ts"
+Now possible to run the server = npm run dev
+
+now need to use/create a parser for body:
+// parser
+app.use(express.json());
 
 PostgreSQL
 -----------
 https://www.npmjs.com/package/pg
 install PostgreSQL = npm i pg
 
+
+
 Neon db = npx neonctl@latest init
 =============
 https://neon.com/
 npm i --save-dev @types/pg
+After that:
+// DB
+const pool = new Pool({
+    connectionString: `postgresql://neondb_owner:npg_8OSy7mbaucfB@ep-proud-mouse-ahmyalu0-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+});
+
+const initDB = async()=>{
+    await pool.query(``);
+}
+
+
+
 
 bcript js
 ----------
