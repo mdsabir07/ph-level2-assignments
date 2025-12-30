@@ -3,7 +3,7 @@ import { pool } from "../../config/db";
 const calculateTotalPrice = (rent_start_date: string, rent_end_date: string, daily_rent_price: string) => {
     const start = new Date(rent_start_date);
     const end = new Date(rent_end_date);
-    const numberOfDays = (end.getTime() - start.getTime()) / (1000 * 3600 * 24); // Convert milliseconds to days
+    const numberOfDays = (end.getTime() - start.getTime()) / (1000 * 3600 * 24); 
     return parseFloat(daily_rent_price) * numberOfDays;
 };
 

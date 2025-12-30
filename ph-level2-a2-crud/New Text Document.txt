@@ -23,3 +23,6 @@ Be sincere and thorough while completing this assignment. Avoid using pre-made s
 If you encounter difficulties, work through them. This will help you become a better developer.
 
 Honesty is key in this assignment. The marks you receive will contribute to your overall assessment, so give it your all!
+
+git link: https://github.com/mdsabir07/ph-level2-assignments/tree/main/ph-level2-a2-crud
+vercel live: https://assignmenttwo-weld.vercel.app/

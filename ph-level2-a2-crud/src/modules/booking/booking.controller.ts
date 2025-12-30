@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { bookingServices } from "./booking.service";
 import { vehicleServices } from "../vehicles/vehicle.service";
 
-// Controller to create a booking
+// create a booking
 const createBooking = async (req: Request, res: Response) => {
     try {
         const { customer_id, vehicle_id, rent_start_date, rent_end_date } = req.body;
@@ -33,7 +33,7 @@ const createBooking = async (req: Request, res: Response) => {
     }
 };
 
-// Controller to get all bookings (Admin can view all, Customer can view their own)
+// get all bookings
 const getBookings = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -63,7 +63,7 @@ const getBookings = async (req: Request, res: Response) => {
     }
 };
 
-// Controller to update booking status (Cancel or Mark as Returned)
+// update booking status
 const updateBookingStatus = async (req: Request, res: Response) => {
     try {
         const bookingId = req.params.bookingId;

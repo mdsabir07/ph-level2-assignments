@@ -1,4 +1,3 @@
-// import bcrypt from "bcryptjs";
 import { pool } from "../../config/db";
 
 // Get user

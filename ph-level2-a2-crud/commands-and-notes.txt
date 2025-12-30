@@ -44,7 +44,7 @@ npm i --save-dev @types/pg
 After that:
 // DB
 const pool = new Pool({
-    connectionString: `postgresql://neondb_owner:npg_8OSy7mbaucfB@ep-proud-mouse-ahmyalu0-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+    connectionString: `postgresql://xxxxxx`
 });
 
 const initDB = async()=>{

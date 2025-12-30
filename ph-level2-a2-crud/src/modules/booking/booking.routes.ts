@@ -4,13 +4,13 @@ import auth from "../../middleware/auth";
 
 const router = express.Router();
 
-// Route to create a booking
+// create a booking
 router.post("/", auth("customer", "admin"), bookingControllers.createBooking);
 
-// Route to get all bookings (Admin) or user's own bookings (Customer)
+// get all bookings
 router.get("/", auth("admin", "customer"), bookingControllers.getBookings);
 
-// Route to update booking status (Cancel or Return)
+// update booking 
 router.put("/:bookingId", auth("customer", "admin"), bookingControllers.updateBookingStatus);
 
 export default router;

@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import config from "../config";
-
-// Custom JWT Payload type definition
 interface MainJwtPayload extends jwt.JwtPayload {
     id: number;
     role: string;
