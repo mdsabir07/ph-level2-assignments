@@ -1,0 +1,88 @@
+https://drive.google.com/file/d/14XkDzGYkfLH8svuAiryHasdo_kq1KY4s/view?usp=sharing
+
+prisma.io
+login:
+user: sabirdev07@gmail.com
+pass: APOa4c*%Ki5kod3p
+
+migrate command for database: npx prisma migrate dev
+run local server studio: npx prisma studio
+run server: npm run dev
+
+1. Create a new project
+Initialize a TypeScript project:
+--------------------
+npm init -y
+npm install typescript tsx @types/node --save-dev
+npx tsc --init
+
+2. Install required dependencies
+Install the packages needed for this quickstart:
+------------------
+npm install prisma @types/node @types/pg --save-dev 
+npm install @prisma/client @prisma/adapter-pg pg dotenv
+
+
+4. Initialize Prisma ORM
+Next, set up your Prisma ORM project by creating your Prisma Schema file with the following command:
+---------------
+npx prisma init --datasource-provider postgresql --output ../generated/prisma
+
+install express and cors
+--------------
+npm i express cors
+
+
+3. Configure ESM support
+Update tsconfig.json for ESM compatibility:
+-------------------------
+{
+  "compilerOptions": {
+    "outDir": "./dist", //enable it
+    "module": "ESNext",
+    "moduleResolution": "node",
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/generated"]
+}
+
+Next is connect database (.env file):
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/prism-blog-app?schema=public"
+
+=============================
+# Better auth:
+* Install better auth: https://www.better-auth.com/docs/installation
+npm install better-auth
+
+* Better auth secret: BETTER_AUTH_SECRET=2LsE9Dctg4EZif9IFFF40KbvBGM78QKG
+* Base URL: BETTER_AUTH_URL=http://localhost:3000 # Base URL of your app
+* create auth.ts file inside lib folder and connect database with prisma 
+
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+// If your Prisma file is located elsewhere, you can change the path
+import { PrismaClient } from "@/generated/prisma/client";
+
+const prisma = new PrismaClient();
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "sqlite", // or "mysql", "postgresql", ...etc
+  }),
+});
+
+* Generate database: npx @better-auth/cli generate
+
+
+# https://www.npmjs.com/package/nodemailer
+install: npm i nodemailer
+Add the below code on auth.ts:
+-------------------------
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false, // Use true for port 465, false for port 587
+  auth: {
+    user: "maddison53@ethereal.email",
+    pass: "jn7jnAPss4f63QBp6D",
+  },
+});
