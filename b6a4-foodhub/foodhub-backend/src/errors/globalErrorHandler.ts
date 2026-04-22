@@ -2,12 +2,13 @@ import { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
 
-import { AppError } from './AppError';
+
 import {
     handleZodError,
     handlePrismaError,
     handleGenericError,
-} from './errorHelpers';
+} from './errorHelpers.js';
+import { AppError } from './AppError.js';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     let result: {
