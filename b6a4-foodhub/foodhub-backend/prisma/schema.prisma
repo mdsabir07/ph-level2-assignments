@@ -1,16 +1,110 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
 model User {
-    id        String   @id @default(uuid())
-    email     String   @unique
-    name      String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      UserRole @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  customerOrders Order[] @relation("CustomerOrders")
+  providerProfile ProviderProfile?
+  reviews Review[] @relation("CustomerReviews")
+}
+
+model ProviderProfile {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  address     String
+  userId     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+
+  meals      Meal[]
+  orders     Order[] @relation("ProviderOrders")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  meals     Meal[]
+}
+
+model Meal {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image String?
+  available  Boolean  @default(true)
+
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  orderItems  OrderItem[]
+  reviews     Review[]
+}
+
+model Order {
+  id     String  @id @default(cuid())
+  status OrderStatus @default(PLACED)
+  totalAmount Float
+  deliveryAddress String
+  createdAt DateTime @default(now())
+
+  customerId String
+  customer   User @relation("CustomerOrders", fields: [customerId], references: [id])
+
+  providerId String
+  provider   ProviderProfile @relation("ProviderOrders", fields: [providerId], references: [id])
+  items      OrderItem[]
+}
+
+model OrderItem {
+  id       String  @id @default(cuid())
+  quantity Int
+  price    Float
+
+  orderId String
+  order   Order @relation(fields: [orderId], references: [id])
+
+  mealId String
+  meal   Meal @relation(fields: [mealId], references: [id])
+}
+
+model Review {
+  id       String  @id @default(cuid())
+  rating   Int
+  comment  String?
+
+  userId   String
+  user     User @relation("CustomerReviews", fields: [userId], references: [id])
+
+  mealId   String
+  meal     Meal @relation(fields: [mealId], references: [id])
 }
