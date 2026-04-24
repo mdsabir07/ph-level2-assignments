@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client"
+  output   = "../src/generated"
 }
 
 datasource db {
@@ -23,88 +24,96 @@ enum OrderStatus {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  name      String?
   password  String
   role      UserRole @default(CUSTOMER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Better Auth specific fields (usually added by the adapter)
+  emailVerified Boolean @default(false)
+  image         String?
+
   // Relations
-  customerOrders Order[] @relation("CustomerOrders")
+  orders          Order[]          @relation("CustomerOrders")
   providerProfile ProviderProfile?
-  reviews Review[] @relation("CustomerReviews")
+  reviews         Review[]
 }
 
 model ProviderProfile {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  address     String
-  userId     String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  id            String  @id @default(cuid())
+  businessName  String
+  description   String?
+  address       String
+  contactNumber String
 
-  meals      Meal[]
-  orders     Order[] @relation("ProviderOrders")
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  meals  Meal[]
+  orders Order[] @relation("ProviderOrders")
 }
 
 model Category {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  meals     Meal[]
+  id    String @id @default(cuid())
+  name  String @unique
+  meals Meal[]
 }
 
 model Meal {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  description String?
+  description String
   price       Float
-  image String?
-  available  Boolean  @default(true)
+  image       String?
+  isAvailable Boolean @default(true)
 
-  providerId  String
-  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  providerId String
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  orderItems  OrderItem[]
-  reviews     Review[]
+  orderItems OrderItem[]
+  reviews    Review[]
 }
 
 model Order {
-  id     String  @id @default(cuid())
-  status OrderStatus @default(PLACED)
-  totalAmount Float
+  id              String      @id @default(cuid())
+  status          OrderStatus @default(PLACED)
+  totalAmount     Float
   deliveryAddress String
-  createdAt DateTime @default(now())
+  createdAt       DateTime    @default(now())
 
   customerId String
-  customer   User @relation("CustomerOrders", fields: [customerId], references: [id])
+  customer   User   @relation("CustomerOrders", fields: [customerId], references: [id])
 
   providerId String
   provider   ProviderProfile @relation("ProviderOrders", fields: [providerId], references: [id])
-  items      OrderItem[]
+
+  items OrderItem[]
 }
 
 model OrderItem {
-  id       String  @id @default(cuid())
+  id       String @id @default(cuid())
   quantity Int
-  price    Float
+  price    Float // Crucial: Store price at time of purchase
 
   orderId String
-  order   Order @relation(fields: [orderId], references: [id])
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   mealId String
-  meal   Meal @relation(fields: [mealId], references: [id])
+  meal   Meal   @relation(fields: [mealId], references: [id])
 }
 
 model Review {
-  id       String  @id @default(cuid())
-  rating   Int
-  comment  String?
+  id      String  @id @default(cuid())
+  rating  Int // e.g., 1-5
+  comment String?
 
-  userId   String
-  user     User @relation("CustomerReviews", fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  mealId   String
-  meal     Meal @relation(fields: [mealId], references: [id])
+  mealId String
+  meal   Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
 }
