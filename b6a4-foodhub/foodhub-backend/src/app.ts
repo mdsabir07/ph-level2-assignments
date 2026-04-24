@@ -1,6 +1,9 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import globalErrorHandler from './middlewares/globalErrorHandler.js';
+import notFound from './middlewares/notFound.js';
+import router from './routes/index.js';
 
 const app: Application = express();
 
@@ -10,13 +13,15 @@ app.use(cors());
 app.use(cookieParser());
 
 // application routes
-// app.use('/api/v1', router);
+app.use('/api/v1', router);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello from FoodHub World!');
 });
 
 // Global error handler
+app.use(globalErrorHandler);
 // Not found handler
+app.use(notFound);
 
 export default app;

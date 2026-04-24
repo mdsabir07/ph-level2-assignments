@@ -1,4 +1,4 @@
-import { AppError } from "./AppError"
+import { AppError } from "./AppError.js"
 
 export const httpError = {
     badRequest: (msg = 'Bad Request', details?: unknown) =>

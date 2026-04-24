@@ -6,7 +6,7 @@ export const handleZodError = (err: ZodError) => {
         statusCode: 400,
         message: 'Validation Error',
         errorMessages: err.issues.map(issue => ({
-            path: issue.path.at(-1),
+            path: issue.path.length ? issue.path.join('.') : '',
             message: issue.message,
         })),
     };

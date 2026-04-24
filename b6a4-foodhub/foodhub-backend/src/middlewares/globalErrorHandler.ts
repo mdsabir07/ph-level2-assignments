@@ -7,8 +7,8 @@ import {
     handleZodError,
     handlePrismaError,
     handleGenericError,
-} from './errorHelpers.js';
-import { AppError } from './AppError.js';
+} from '../errors/errorHelpers.js';
+import { AppError } from '../errors/AppError.js';
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     let result: {
