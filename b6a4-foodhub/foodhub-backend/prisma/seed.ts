@@ -1,43 +1,59 @@
-import { prisma } from '../src/lib/prisma.js';
-import bcrypt from 'bcrypt';
-
+import { prisma } from "../src/lib/prisma";
+import { auth } from "../src/lib/auth";
 
 async function main() {
-    // hash the password for the Admin
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    console.log("🌱 Starting database seeding...");
 
-    // Upsert the Admin (prevents duplicate on re-run)
-    await prisma.user.upsert({
-        where: { email: 'admin@foodhub.com' },
-        update: {
-
-        },
-        create: {
-            name: 'Admin',
-            email: 'admin@foodhub.com',
-            password: hashedPassword,
-            role: 'ADMIN'
-        },
+    // ==========================================
+    // SEED DEFAULT SYSTEM ADMIN ACCOUNT ONLY
+    // ==========================================
+    console.log("🔎 Checking for existing Admin user...");
+    const adminEmail = "admin@sabiha.com";
+    
+    const existingAdmin = await prisma.user.findUnique({
+        where: { email: adminEmail }
     });
 
-    // Seed categories
-    const categories = ['Burgers', 'Pizza', 'Sushi', 'Desserts', 'Healthy'];
-    for (const cat of categories) {
-        await prisma.category.upsert({
-            where: { name: cat },
-            update: {},
-            create: { name: cat },
-        });
+    if (!existingAdmin) {
+        console.log("📥 Seeding default system Admin via Better-Auth APIs...");
+        
+        try {
+            // 1. Create the credentials user using Better-Auth's native server engine.
+            // This safely hashes the password and creates the relational tables.
+            await auth.api.signUpEmail({
+                body: {
+                    name: "System Administrator",
+                    email: adminEmail,
+                    password: "AdminPass123!", // Password will hash correctly automatically
+                }
+            });
 
-        console.log('✅ Seed data (Admin & Categories) inserted successfully');
+            console.log("🛡️ Elevating seeded account privileges to ADMIN...");
+            
+            // 2. Elevate the user role in Prisma safely
+            await prisma.user.update({
+                where: { email: adminEmail },
+                data: {
+                    role: "ADMIN",
+                    emailVerified: true
+                }
+            });
+
+            console.log(`✅ Admin user seeded and elevated successfully! (${adminEmail})`);
+        } catch (authError: any) {
+            console.error("❌ Better-Auth Registration API failed:", authError?.message || authError);
+            throw authError;
+        }
+    } else {
+        console.log("ℹ️ Admin user already exists. Skipping seeder insert.");
     }
-
-    main()
-        .catch((e) => {
-            console.error(e);
-            process.exit(1);
-        })
-        .finally(async () => {
-            await prisma.$disconnect();
-        })
 }
+
+main()
+    .catch((e) => {
+        console.error("❌ Seeding failed:", e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

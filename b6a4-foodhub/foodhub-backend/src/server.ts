@@ -1,56 +1,20 @@
-import { Server } from 'http';
-import app from './app.js';
-import config from './config/index.js';
-import { prisma } from './lib/prisma.js';
+import app from "./app";
+import { prisma } from "./lib/prisma";
 
-let server: Server;
-
+const port = process.env.PORT || 4000;
 async function main() {
-  try {
-    await prisma.$connect();
-    server = app.listen(config.port, () => {
-      console.log(`FooHub app listening on port ${config.port}`);
-    });
-  } catch (err) {
-    console.log(err);
-  }
+    try {
+        await prisma.$connect();
+        console.log("Connected to the database successfully.");
+
+        app.listen(port, () => {
+            console.log(`The server is running on port http://localhost:${port}`);
+        });
+    } catch (error) {
+        console.error("Error in main function: ", error);
+        await prisma.$disconnect();
+        process.exit(1);
+    }
 }
 
 main();
-
-process.on('unhandledRejection', () => {
-  console.log(`😈 unhandledRejection is detected , shutting down ...`);
-  if (server) {
-    server.close(() => {
-      prisma.$disconnect();
-      process.exit(1);
-    });
-  } else {
-    process.exit(1);
-  }
-});
-
-process.on('uncaughtException', () => {
-  console.log(`😈 uncaughtException is detected , shutting down ...`);
-  process.exit(1);
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT is received');
-  if (server) {
-    server.close(() => {
-      console.log("Process terminated!");
-      prisma.$disconnect();
-    });
-  }
-});
-
-process.on('SIGTERM', () => {
-  console.log('SIGTERM is received');
-  if (server) {
-    server.close(() => {
-      console.log("Process terminated!");
-      prisma.$disconnect();
-    });
-  }
-});

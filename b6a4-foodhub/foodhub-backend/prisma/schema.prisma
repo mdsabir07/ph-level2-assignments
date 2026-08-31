@@ -1,13 +1,223 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
+// ==========================================
+// 1. USER MODEL (With suspension capability)
+// ==========================================
+model User {
+  id            String   @id @default(cuid(2))
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  role          Role     @default(CUSTOMER)
+
+  // 🛡️ Added Admin Management State
+  isSuspended Boolean @default(false)
+
+  // Relations
+  meals    Meal[]
+  orders   Order[]
+  reviews  Review[]
+  sessions Session[]
+  accounts Account[]
+  cart     Cart?
+}
+
+// ==========================================
+// Session model for Better Auth
+// ==========================================
+model Session {
+  id        String   @id @default(cuid(2))
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ==========================================
+// Account model for Better Auth
+// ==========================================
+model Account {
+  id                    String   @id @default(cuid(2))
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  String?
+  refreshTokenExpiresAt String?
+  scope                 String?
+  password              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ==========================================
+// Verification model for Better Auth
+// ==========================================
+model Verification {
+  id         String   @id @default(cuid(2))
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ==========================================
+// CATEGORIES (Food types like Burgers, Pizza)
+// ==========================================
+model Category {
+  id        String   @id @default(cuid(2))
+  name      String   @unique
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  meals Meal[]
+
+  @@index([slug])
+}
+
+// ==========================================
+// MEALS (Menu items created by providers)
+// ==========================================
+model Meal {
+  id          String   @id @default(cuid(2))
+  name        String
+  description String
+  price       Float
+  image       String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  categoryId String
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  userId     String
+  provider   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  reviews    Review[]
+  cartItems  CartItem[]
+
+  @@index([categoryId])
+  @@index([userId])
+  @@index([isAvailable])
+  @@map("meals")
+}
+
+// ==========================================
+// Cart
+// ==========================================
+model Cart {
+  id     String @id @default(cuid(2))
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  cartItems CartItem[]
+}
+
+// ==========================================
+// Cart Items
+// ==========================================
+model CartItem {
+  id        String   @id @default(cuid(2))
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  mealId    String
+  meal      Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, mealId])
+  @@index([cartId])
+  @@index([mealId])
+}
+
+// ==========================================
+// ORDERS (Customer purchase records)
+// ==========================================
+model Order {
+  id              String      @id @default(cuid(2))
+  deliveryAddress String
+  totalAmount     Float
+  status          OrderStatus @default(PLACED)
+  createdAt       DateTime    @default(now())
+
+  // Relations
+  customerId String
+  customer   User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([customerId])
+  @@index([status])
+  @@map("orders")
+}
+
+// ==========================================
+// 5. ORDER ITEMS (Join table for receipt history)
+// ==========================================
+model OrderItem {
+  id       String @id @default(cuid(2))
+  quantity Int
+  price    Float
+
+  // Relations
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  mealId  String
+  meal    Meal   @relation(fields: [mealId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([mealId])
+  @@map("order_items")
+}
+
+// ==========================================
+// 6. REVIEWS (Customer ratings for meals)
+// ==========================================
+model Review {
+  id        String   @id @default(cuid(2))
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  mealId     String
+  meal       Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([mealId])
+  @@map("reviews")
+}
+
+enum Role {
   CUSTOMER
   PROVIDER
   ADMIN
@@ -18,102 +228,5 @@ enum OrderStatus {
   PREPARING
   READY
   DELIVERED
-  CANCELLED
-}
-
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      UserRole @default(CUSTOMER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Better Auth specific fields (usually added by the adapter)
-  emailVerified Boolean @default(false)
-  image         String?
-
-  // Relations
-  orders          Order[]          @relation("CustomerOrders")
-  providerProfile ProviderProfile?
-  reviews         Review[]
-}
-
-model ProviderProfile {
-  id            String  @id @default(cuid())
-  businessName  String
-  description   String?
-  address       String
-  contactNumber String
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  meals  Meal[]
-  orders Order[] @relation("ProviderOrders")
-}
-
-model Category {
-  id    String @id @default(cuid())
-  name  String @unique
-  meals Meal[]
-}
-
-model Meal {
-  id          String  @id @default(cuid())
-  name        String
-  description String
-  price       Float
-  image       String?
-  isAvailable Boolean @default(true)
-
-  providerId String
-  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  orderItems OrderItem[]
-  reviews    Review[]
-}
-
-model Order {
-  id              String      @id @default(cuid())
-  status          OrderStatus @default(PLACED)
-  totalAmount     Float
-  deliveryAddress String
-  createdAt       DateTime    @default(now())
-
-  customerId String
-  customer   User   @relation("CustomerOrders", fields: [customerId], references: [id])
-
-  providerId String
-  provider   ProviderProfile @relation("ProviderOrders", fields: [providerId], references: [id])
-
-  items OrderItem[]
-}
-
-model OrderItem {
-  id       String @id @default(cuid())
-  quantity Int
-  price    Float // Crucial: Store price at time of purchase
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  mealId String
-  meal   Meal   @relation(fields: [mealId], references: [id])
-}
-
-model Review {
-  id      String  @id @default(cuid())
-  rating  Int // e.g., 1-5
-  comment String?
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  mealId String
-  meal   Meal   @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  CANCELED
 }
